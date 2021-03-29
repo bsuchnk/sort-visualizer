@@ -18,7 +18,7 @@ func initGlfw() *glfw.Window {
 	glfw.WindowHint(glfw.ContextVersionMinor, 3)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 
-	window, err := glfw.CreateWindow(width, height, "Game of life", nil, nil)
+	window, err := glfw.CreateWindow(width, height, "Sort Visualizer", nil, nil)
 	if err != nil {
 		panic(err)
 	}

@@ -17,7 +17,7 @@ func main() {
 	program := initOpenGL()
 	gl.ClearColor(0.2, 0.3, 0.3, 1.0)
 
-	visualizer := newVisualizer(20, program)
+	visualizer := newVisualizer(500, program)
 
 	for !window.ShouldClose() {
 		t := time.Now()

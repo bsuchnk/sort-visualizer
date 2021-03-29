@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"time"
 
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
@@ -15,7 +16,7 @@ type barData struct {
 func newData(n int32) []barData {
 	vd := make([]barData, n)
 	for i := int32(0); i < n; i++ {
-		vd[i].value = rand.Int31()%(n*2-20) + 10
+		vd[i].value = i + n/2 //rand.Int31()%(n*2-20) + 10
 		vd[i].ID = i
 	}
 	return vd
@@ -70,17 +71,19 @@ func newVisualizer(n int32, shaderProgram uint32) *Visualizer {
 		v.bars[i] = newBar(d, n)
 	}
 
-	//v.randomize()
-	v.bubbleSort()
+	v.randomize()
+	// go v.bubbleSort()
+	// go v.insertionSort()
+	go v.selectionSort()
 
 	return v
 }
 
 func (v *Visualizer) draw() {
 	transform := gl.GetUniformLocation(v.shader, gl.Str("transform\x00"))
-	for i, bar := range v.bars {
-		gl.Uniform3f(transform, -1+float32(2)*float32(v.data[i].ID)/float32(v.nElem), -1, 0)
-		bar.draw()
+	for i, _ := range v.data {
+		gl.Uniform3f(transform, -1+float32(2)*float32(i)/float32(v.nElem), -1, 0)
+		v.bars[v.data[i].ID].draw()
 	}
 }
 
@@ -88,12 +91,20 @@ func (v *Visualizer) randomize() {
 	values := make([]int32, v.nElem)
 	for i := int32(0); i < v.nElem; i++ {
 		values[i] = i
+		//fmt.Printf("%d ", v.data[i].ID)
 	}
+	fmt.Println()
+
+	var newdata = make([]barData, v.nElem)
+
 	for i := int32(0); i < v.nElem; i++ {
 		r := rand.Int31() % (int32(len(values)) - i)
-		v.data[i].value = values[r]
-		values[r] = values[len(values)-1]
+		newdata[i] = v.data[values[r]]
+		values[r] = values[len(values)-1-int(i)]
+		//fmt.Printf("%d ", v.data[i].ID)
 	}
+
+	copy(v.data, newdata)
 }
 
 //
@@ -114,19 +125,48 @@ func makeVao(vertices []float32) uint32 {
 }
 
 func (v *Visualizer) bubbleSort() {
-	for i := 0; i < int(v.nElem); i++ {
-		fmt.Printf("%d ", v.data[i].value)
-	}
-	fmt.Println()
+	// for i := 0; i < int(v.nElem); i++ {
+	// 	fmt.Printf("%d ", v.data[i].value)
+	// }
+	// fmt.Println()
 	for i := 0; i < int(v.nElem); i++ {
 		for j := 1; j < int(v.nElem); j++ {
 			if v.data[j].value < v.data[j-1].value {
 				v.data[j], v.data[j-1] = v.data[j-1], v.data[j]
+				time.Sleep(1 * time.Millisecond)
 			}
 		}
 	}
 
-	for i := 0; i < int(v.nElem); i++ {
-		fmt.Printf("%d ", v.data[i].value)
+	// for i := 0; i < int(v.nElem); i++ {
+	// 	fmt.Printf("%d ", v.data[i].value)
+	// }
+}
+
+func (v *Visualizer) insertionSort() {
+	for i := 1; i < int(v.nElem); i++ {
+		key := v.data[i]
+		j := i - 1
+		for j >= 0 && v.data[j].value > key.value {
+			v.data[j+1] = v.data[j]
+			j--
+			//time.Sleep(time.Microsecond)
+		}
+		v.data[j+1] = key
+		time.Sleep(time.Nanosecond)
+	}
+}
+
+func (v *Visualizer) selectionSort() {
+	for i := 0; i < int(v.nElem)-1; i++ {
+		min_i := i
+		for j := i + 1; j < int(v.nElem); j++ {
+			if v.data[j].value < v.data[min_i].value {
+				min_i = j
+			}
+			//time.Sleep(time.Nanosecond)
+		}
+		v.data[i], v.data[min_i] = v.data[min_i], v.data[i]
+		time.Sleep(time.Nanosecond)
 	}
 }
