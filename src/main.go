@@ -15,9 +15,11 @@ func main() {
 	defer glfw.Terminate()
 
 	program := initOpenGL()
-	gl.ClearColor(0.2, 0.3, 0.3, 1.0)
+	gl.ClearColor(0.2, 0.2, 0.4, 1.0)
 
-	visualizer := newVisualizer(500, program)
+	window.SetPos(850, 400)
+
+	visualizer := newVisualizer(25, program)
 
 	for !window.ShouldClose() {
 		t := time.Now()

@@ -53,10 +53,11 @@ func (bar *Bar) draw() {
 }
 
 type Visualizer struct {
-	nElem  int32
-	shader uint32
-	data   []barData
-	bars   []*Bar
+	nElem          int32
+	shader         uint32
+	data           []barData
+	bars           []*Bar
+	highlightedBar int
 }
 
 func newVisualizer(n int32, shaderProgram uint32) *Visualizer {
@@ -72,19 +73,26 @@ func newVisualizer(n int32, shaderProgram uint32) *Visualizer {
 	}
 
 	v.randomize()
-	// go v.bubbleSort()
-	// go v.insertionSort()
-	go v.selectionSort()
+	go v.bubbleSort()
+	//go v.insertionSort()
+	//go v.selectionSort()
 
 	return v
 }
 
 func (v *Visualizer) draw() {
 	transform := gl.GetUniformLocation(v.shader, gl.Str("transform\x00"))
-	for i, _ := range v.data {
+	barUniform := gl.GetUniformLocation(v.shader, gl.Str("bar\x00"))
+	for i := range v.data {
 		gl.Uniform3f(transform, -1+float32(2)*float32(i)/float32(v.nElem), -1, 0)
+		if i == v.highlightedBar {
+			gl.Uniform1f(barUniform, -1)
+		} else {
+			gl.Uniform1f(barUniform, float32(v.data[i].ID)/float32(v.nElem))
+		}
 		v.bars[v.data[i].ID].draw()
 	}
+	v.highlightedBar = -1
 }
 
 func (v *Visualizer) randomize() {
@@ -133,7 +141,8 @@ func (v *Visualizer) bubbleSort() {
 		for j := 1; j < int(v.nElem); j++ {
 			if v.data[j].value < v.data[j-1].value {
 				v.data[j], v.data[j-1] = v.data[j-1], v.data[j]
-				time.Sleep(1 * time.Millisecond)
+				v.highlightedBar = j
+				time.Sleep(time.Second / fps)
 			}
 		}
 	}
@@ -164,9 +173,12 @@ func (v *Visualizer) selectionSort() {
 			if v.data[j].value < v.data[min_i].value {
 				min_i = j
 			}
-			//time.Sleep(time.Nanosecond)
+			v.highlightedBar = j
+			time.Sleep(time.Second / fps)
 		}
 		v.data[i], v.data[min_i] = v.data[min_i], v.data[i]
-		time.Sleep(time.Nanosecond)
+		v.highlightedBar = i
+		time.Sleep(time.Second / fps)
 	}
+	v.highlightedBar = -1
 }

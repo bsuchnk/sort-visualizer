@@ -8,11 +8,15 @@ in vec3 vp;
 out vec3 col_pos;
 
 uniform vec3 transform;
+uniform float bar;
 
 void main() {
 	gl_Position = vec4(vp+transform, 1.0);
 
-	col_pos = vec3(1,1,0);
+	if (bar >= 0)
+		col_pos = vec3(bar,1-bar,1);
+	else
+		col_pos = vec3(1,1,0.5);
 }
 ` + "\x00"
 
