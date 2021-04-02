@@ -58,6 +58,8 @@ type Visualizer struct {
 	data           []barData
 	bars           []*Bar
 	highlightedBar int
+
+	sorts []func()
 }
 
 func newVisualizer(n int32, shaderProgram uint32) *Visualizer {
@@ -66,16 +68,20 @@ func newVisualizer(n int32, shaderProgram uint32) *Visualizer {
 	v.shader = shaderProgram
 	v.data = newData(n)
 	v.bars = make([]*Bar, n)
+	v.sorts = []func(){v.bubbleSort, v.insertionSort, v.selectionSort}
 
 	for i, d := range v.data {
 		//fmt.Println(i)
 		v.bars[i] = newBar(d, n)
 	}
 
-	v.randomize()
-	go v.bubbleSort()
+	//v.randomize()
+	//go v.bubbleSort()
 	//go v.insertionSort()
 	//go v.selectionSort()
+
+	rand.Seed(time.Now().UnixNano())
+	v.playRandomSort()
 
 	return v
 }
@@ -113,6 +119,12 @@ func (v *Visualizer) randomize() {
 	}
 
 	copy(v.data, newdata)
+}
+
+func (v *Visualizer) playRandomSort() {
+	v.randomize()
+	r := rand.Intn(len(v.sorts))
+	go v.sorts[r]()
 }
 
 //
@@ -159,9 +171,11 @@ func (v *Visualizer) insertionSort() {
 		for j >= 0 && v.data[j].value > key.value {
 			v.data[j+1] = v.data[j]
 			j--
-			//time.Sleep(time.Microsecond)
+			v.highlightedBar = j
+			time.Sleep(time.Microsecond)
 		}
 		v.data[j+1] = key
+		v.highlightedBar = j
 		time.Sleep(time.Nanosecond)
 	}
 }
